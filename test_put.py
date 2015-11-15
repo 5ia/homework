@@ -9,18 +9,25 @@ class TestUpdate(unittest.TestCase):
     APP_NAME='MyApp'
     DOMAIN="https://my.domain.com"
     APPID = '123'
-    PERMISSIONS = [ "A", "C" ] #WHAT ARE THE VALID PERMISSIONS? ARE THERE INVALID ONES AS WELL?
-    INV_USR='john' #user that is not registered
+    PERMISSIONS = [ "A", "C" ]  #WHAT ARE THE VALID PERMISSIONS? ARE THERE INVALID ONES AS WELL?
+    INV_USR='john'              #user that is not registered
     INV_PASS='random'
-    USR2='ben'
-    PSW2='benspass'
+    USR2='ben'                  #valid user from db
+    PSW2='benspass'             #valid pass for ben
     APP_NEW_NAME='MyNewApp'
-    NEW_DOMAIN="https://my.newdomain.com"
-    INV_APPID="8979" # there should be no app with this ID
+    NEW_DOMAIN="https://my1.domain.com"    
+    INV_APPID="8979"            # there should be no app with this ID
     
-    def test_valid_auth_data(self):
-        """ Test with correct authentication and valid data"""
+    def test_add_permission(self):
+        """ Test with correct authentication and valid data, adding permissions"""
         mydata = {"name" : self.APP_NAME, "domain" : self.DOMAIN, "permissions" : self.PERMISSIONS}
+        url = self.DOMAIN + '/apps/' + self.APPID
+        r=requests.put(url,data=mydata, auth=(self.VALID_USR, self.VALID_PASS))
+        self.assertEqual(r.status_code, 200)
+
+    def test_remove_permission(self):
+        """ Test with correct authentication and valid data, removing all permissions"""
+        mydata = {"name" : self.APP_NAME, "domain" : self.DOMAIN, "permissions" : []}
         url = self.DOMAIN + '/apps/' + self.APPID
         r=requests.put(url,data=mydata, auth=(self.VALID_USR, self.VALID_PASS))
         self.assertEqual(r.status_code, 200)
@@ -85,7 +92,7 @@ class TestUpdate(unittest.TestCase):
         """ Test request without a body"""
         url = self.DOMAIN + '/apps/' + self.APPID
         r=requests.put(url, auth=(self.VALID_USR, self.VALID_PASS))
-        self.assertEqual(r.status_code,400)
+        self.assertEqual(r.status_code,500)
         
     def test_missing_appname(self):
         """ Test request without app name"""
@@ -119,6 +126,13 @@ class TestUpdate(unittest.TestCase):
         """ Test request without application Id"""
         mydata = {"name" : self.APP_NAME, "domain" : self.DOMAIN, "permissions" : self.PERMISSIONS}
         url = self.DOMAIN + '/apps/' 
+        r=requests.put(url,data=mydata, auth=(self.VALID_USR, self.VALID_PASS))
+        self.assertEqual(r.status_code,500)
+
+    def test_wrong_domain(self):
+        """ Test request with domain that is not in the db"""
+        mydata = {"name" : self.APP_NAME, "domain" : self.NEW_DOMAIN, "permissions" : self.PERMISSIONS}
+        url = self.NEW_DOMAIN + '/apps/' + self.APPID
         r=requests.put(url,data=mydata, auth=(self.VALID_USR, self.VALID_PASS))
         self.assertEqual(r.status_code,500)
         
